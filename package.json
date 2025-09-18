@@ -1,0 +1,38 @@
+{
+  "name": "care-cartography",
+  "private": true,
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "lint:root": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
+  },
+  "keywords": [
+    "care",
+    "p5.js",
+    "artwork",
+    "cartography"
+  ],
+  "packageManager": "pnpm@10.17.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "Anders Eskildsen",
+  "license": "MPL-2.0",
+  "devDependencies": {
+    "turbo": "^2.5.6",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "@eslint/js": "^9.35.0",
+    "eslint": "^9.35.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.4.0",
+    "typescript-eslint": "^8.43.0"
+  }
+}
