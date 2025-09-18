@@ -1,0 +1,192 @@
+# Care-Cartography-Commons Technical Project Specification
+
+## 1. Overview
+
+**Purpose** 
+
+To collect user feedback via a mobile interface accessed through QR codes, and transform this data into a generative visual artwork that evolves in real time. The system supports filtering and analysis by researchers.
+
+**Stakeholders**
+
+- Users of participating institutions
+- Researchers and administrators
+- Artists and designers
+- Developers
+
+**Technical scope**
+
+- QR-based feedback collection
+- Backend API and data storage
+- Generative artwork engine
+- Admin panel for data filtering and export
+- Dockerized deployment
+- Monorepo codebase with JS/TS frontend and Python/PostgreSQL backend
+
+---
+
+## 2. User Experience Flow
+
+1. User scans a QR code.
+2. A mobile-friendly web interface opens.
+3. User must consent to data collection.
+4. User submits a rating (e.g., 1–5 scale).
+5. The system captures:
+    - Rating
+    - Timestamp
+    - Hashed institution ID
+    - Optional: Location (GPS coordinates)
+6. Data is sent to the backend.
+7. Artwork engine updates visual output based on new data.
+8. Artwork is shown to user in the browser.
+9. Artwork display in a central location updates with the new data point.
+
+---
+
+## 3. System Architecture
+
+### Monorepo Structure
+
+Frontend and backend code is organized in a monorepo and containerized with docker.
+
+```
+project-root/
+├── apps/
+│   ├── frontend/        # React or Astro app
+│   ├── artwork-display/ # p5.js renderer
+│   └── admin-panel/     # Admin interface for researchers
+├── packages/
+│   ├── api/             # FastAPI backend
+│   ├── db/              # Database models and migrations
+│   └── shared/          # Shared utilities (language-specific)
+├── docker/
+│   └── Dockerfile       # Unified container setup
+├── docker-compose.yml   # Multi-service orchestration
+└── .env                 # Environment variables
+```
+
+### Development
+
+- **Database**: Use a docker-compose.dev.yml to run a PostgreSQL container for the database. Create tables and fill with test data.
+- **Backend**: Run the FastAPI server from the packages/api directory with uvicorn for hot reloading.
+- **Frontend**: Each frontend application in apps/ will have its own development server (e.g., Vite). Can run concurrently.
+
+### Deployment
+
+Build process is a multi-stage Dockerfile:
+
+1. Build frontend: Start from a Node.js base image. Copy the JS/TS source code, install dependencies, and run the `turbo build` command.
+2. Build backend: Start from a Python base image. Copy the Python source code, install dependencies.
+3. Final image contains both the built frontend assets and the backend server.
+  - Uses Docker Compose for multi-container setup (e.g., server/api + PostgreSQL).
+  - Static frontend files are served via FastAPI or caddy.
+
+### Runtime tasks
+
+- Hourly backups of the PostgreSQL database.
+- Store shown artwork snapshots daily/weekly/monthly.
+
+---
+
+## 4. Data Specification
+
+**Rating**
+
+- Type: Integer (1–5)
+
+**Timestamp**
+
+- Format: ISO 8601
+- Timezone: Copenhagen
+
+**Location**
+
+- Format: Institution id (UUID)
+
+**DB storage**
+
+- PostgreSQL
+- Tables:
+  - `ratings`:
+    - id (UUID string)
+    - rating (integer)
+    - timestamp (string)
+    - institution_id (UUID string)
+  - `institutions`:
+    - id (UUID string)
+    - name (string)
+    - qr_code (image file)
+    - location (coordinates for whole map)
+    - active_start (timestamp)
+    - active_end (timestamp)
+    - created_at (timestamp)
+    - updated_at (timestamp)
+  - `artwork_snapshots`:
+    - id (UUID string)
+    - image (file path or blob)
+    - timestamp (string)
+    - metadata (JSON)
+
+---
+
+## 5. Artwork
+
+**Input Parameters**
+
+Datapoints containing:
+
+- Ratings
+- Locations
+- Timestamp?
+
+**Visual Output**
+
+- 2D canvas with artistic representation of data (p5.js)
+- Static or lightly animated
+- Evolves based on incoming data
+- With multiple institutions, user sees the whole map but can zoom in on a single institution if desired
+
+**Style**
+
+- Artist-defined style
+- To be determined in collaboration with artists
+
+---
+
+## 6. Admin Panel Features
+
+**Administration**
+
+- CRUD-operations on institutions and QR-codes
+- Management of data collection
+
+**View data with filtering**
+
+- By time range
+- By institution or location
+- By rating thresholds
+
+**Visualization**
+
+- Data charts (e.g., rating trends)
+- Artwork snapshots
+
+**Export**
+
+- CSV or JSON data dumps
+- Image exports of artwork
+
+**Access Control**
+
+- Login for researchers
+- Role-based permissions (view, export, configure)
+
+---
+
+## 7. Development Plan
+
+**Milestones**
+
+- MVP: QR interface + backend + basic artwork
+- Phase 2: Admin panel + filtering
+- Phase 3: Artist collaboration + aesthetic refinement
+- Phase 4: Deployment and testing
