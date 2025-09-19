@@ -61,6 +61,8 @@ project-root/
 ├── docker/
 │   └── Dockerfile       # Unified container setup
 ├── docker-compose.yml   # Multi-service orchestration
+├── Caddyfile            # Caddy server configuration
+├── README.md            # Project documentation
 └── .env                 # Environment variables
 ```
 
@@ -77,8 +79,8 @@ Build process is a multi-stage Dockerfile:
 1. Build frontend: Start from a Node.js base image. Copy the JS/TS source code, install dependencies, and run the `turbo build` command.
 2. Build backend: Start from a Python base image. Copy the Python source code, install dependencies.
 3. Final image contains both the built frontend assets and the backend server.
-  - Uses Docker Compose for multi-container setup (e.g., server/api + PostgreSQL).
-  - Static frontend files are served via FastAPI or caddy.
+  - Uses Docker Compose for multi-container setup (e.g., server/api + PostgreSQL + caddy).
+  - Static frontend files are served via caddy (using https).
 
 ### Runtime tasks
 
@@ -125,7 +127,12 @@ Build process is a multi-stage Dockerfile:
     - image (file path or blob)
     - timestamp (string)
     - metadata (JSON)
-
+  - `admins`:
+    - id (UUID string)
+    - username (string)
+    - password_hash (string)
+    - role (string: admin/researcher)
+    
 ---
 
 ## 5. Artwork
@@ -152,7 +159,7 @@ Datapoints containing:
 
 ---
 
-## 6. Admin Panel Features
+## 6. Admin panel features
 
 **Administration**
 
@@ -173,16 +180,46 @@ Datapoints containing:
 **Export**
 
 - CSV or JSON data dumps
-- Image exports of artwork
+- Image exports of artwork with filtered data
 
-**Access Control**
+**Access control**
 
-- Login for researchers
-- Role-based permissions (view, export, configure)
+- Login for admins/researchers
 
 ---
 
-## 7. Development Plan
+## 7. Endpoints
+
+Frontend:
+
+- `POST /api/ratings`: Submit a new rating
+- `GET /artwork`: Show artwork frontend
+
+Admin panel:
+
+- `GET /admin`: Show admin panel frontend
+
+API endpoints for admin panel:
+
+- `GET /api/institutions`: List institutions
+- `POST /api/institutions`: Create a new institution
+- `PUT /api/institutions/{id}`: Update an institution
+- `DELETE /api/institutions/{id}`: Delete an institution
+
+---
+
+## 8. Security and privacy
+
+- Ratings are anonymous
+- Institution IDs are hashed
+- API secured with authentication for admin panel
+- HTTPS enforced via Caddy
+- API is only accessible internally
+- Artwork data does not expose individual ratings
+
+---
+
+## 9. Development plan
 
 **Milestones**
 
