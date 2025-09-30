@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "./start-dev.sh"
+    "dev": ".venv/bin/uvicorn care_cartography_api.__main__:app --reload --port 8000"
   }
 }

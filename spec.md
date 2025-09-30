@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-**Purpose** 
+**Purpose**
 
 To collect user feedback via a mobile interface accessed through QR codes, and transform this data into a generative visual artwork that evolves in real time. The system supports filtering and analysis by researchers.
 
@@ -79,8 +79,9 @@ Build process is a multi-stage Dockerfile:
 1. Build frontend: Start from a Node.js base image. Copy the JS/TS source code, install dependencies, and run the `turbo build` command.
 2. Build backend: Start from a Python base image. Copy the Python source code, install dependencies.
 3. Final image contains both the built frontend assets and the backend server.
-  - Uses Docker Compose for multi-container setup (e.g., server/api + PostgreSQL + caddy).
-  - Static frontend files are served via caddy (using https).
+
+- Uses Docker Compose for multi-container setup (e.g., server/api + PostgreSQL + caddy).
+- Static frontend files are served via caddy (using https).
 
 ### Runtime tasks
 
@@ -93,7 +94,7 @@ Build process is a multi-stage Dockerfile:
 
 **Rating**
 
-- Type: Integer (1–5)
+- Type: Integer (1–3)
 
 **Timestamp**
 
@@ -123,7 +124,6 @@ Build process is a multi-stage Dockerfile:
     - created_at (timestamp)
     - updated_at (timestamp)
   - `artwork_snapshots`:
-    - id (UUID string)
     - image (file path or blob)
     - timestamp (string)
     - metadata (JSON)
@@ -132,7 +132,7 @@ Build process is a multi-stage Dockerfile:
     - username (string)
     - password_hash (string)
     - role (string: admin/researcher)
-    
+
 ---
 
 ## 5. Artwork

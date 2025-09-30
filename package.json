@@ -9,7 +9,7 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "lint:root": "eslint .",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
     "check-types": "turbo run check-types"
   },
   "keywords": [
