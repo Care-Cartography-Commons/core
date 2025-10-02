@@ -52,7 +52,7 @@ Frontend and backend code is organized in a monorepo and containerized with dock
 project-root/
 ├── apps/
 │   ├── frontend/        # React or Astro app
-│   ├── artwork-display/ # p5.js renderer
+│   ├── artwork-display/ # paper.js renderer
 │   └── admin-panel/     # Admin interface for researchers
 ├── packages/
 │   ├── api/             # FastAPI backend
@@ -147,7 +147,7 @@ Datapoints containing:
 
 **Visual Output**
 
-- 2D canvas with artistic representation of data (p5.js)
+- 2D canvas with artistic representation of data (paper.js)
 - Static or lightly animated
 - Evolves based on incoming data
 - With multiple institutions, user sees the whole map but can zoom in on a single institution if desired
