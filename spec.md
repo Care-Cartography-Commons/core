@@ -12,6 +12,7 @@ To collect user feedback via a mobile interface accessed through QR codes, and t
 - Researchers and administrators
 - Artists and designers
 - Developers
+- Curators / Art institutions
 
 **Technical scope**
 
@@ -199,10 +200,9 @@ Admin panel:
 
 - `GET /admin`: Show admin panel frontend
 
-API endpoints for admin panel:
-
 - `GET /api/institutions`: List institutions
 - `POST /api/institutions`: Create a new institution
+- `GET /api/institutions/{id}`: Show an institution
 - `PUT /api/institutions/{id}`: Update an institution
 - `DELETE /api/institutions/{id}`: Delete an institution
 
@@ -214,7 +214,6 @@ API endpoints for admin panel:
 - Institution IDs are hashed
 - API secured with authentication for admin panel
 - HTTPS enforced via Caddy
-- API is only accessible internally
 - Artwork data does not expose individual ratings
 
 ---
