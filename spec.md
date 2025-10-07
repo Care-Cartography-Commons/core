@@ -171,17 +171,11 @@ Datapoints containing:
 
 - By time range
 - By institution or location
-- By rating thresholds
 
-**Visualization**
-
-- Data charts (e.g., rating trends)
-- Artwork snapshots
-
-**Export**
+**Export/download**
 
 - CSV or JSON data dumps
-- Image exports of artwork with filtered data
+- Artwork snapshots
 
 **Access control**
 
