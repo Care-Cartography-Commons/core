@@ -3,7 +3,6 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
-import json
 
 class Rating(BaseModel):
     institution: str
