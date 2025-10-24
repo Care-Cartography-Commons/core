@@ -1,21 +1,28 @@
 import os
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
+from contextlib import asynccontextmanager
+from sqlalchemy.orm import Session
+from .database import get_db, engine, Base
+from . import models
 
-class Rating(BaseModel):
+class RatingInput(BaseModel):
     institution: str
     rating: int
 
-# Dummy database
-institutions_db = [
-    {
-        "id": "inst1",
-        "name": "Æblerød Plejehjem",
-        "ratings": [],
-    },
-]
+def get_institutions_data(db: Session):
+    """Helper function to get all institutions with their ratings"""
+    institutions = db.query(models.Institution).all()
+    return [
+        {
+            "id": inst.id,
+            "name": inst.name,
+            "ratings": [r.rating for r in inst.ratings]
+        }
+        for inst in institutions
+    ]
 
 # Store active WebSocket connections
 class ConnectionManager:
@@ -40,7 +47,14 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create database tables
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Shutdown: cleanup if needed
+
+app = FastAPI(lifespan=lifespan)
 
 # Add CORS middleware only in development
 if os.getenv("ENVIRONMENT", "development") != "production":
@@ -57,41 +71,51 @@ async def root():
     return {"message": "Hello World"}
 
 @app.post("/api/ratings/submit")
-async def submit(input: Rating):
-    submission = input.dict()
-    rating = submission['rating']
-    institution_id = submission['institution']
+async def submit(input: RatingInput, db: Session = Depends(get_db)):
+    # Find the institution
+    institution = db.query(models.Institution).filter(
+        models.Institution.id == input.institution
+    ).first()
 
-    # Fix: Loop through the list to find the institution
-    for institution in institutions_db:
-        if institution["id"] == institution_id:
-            institution["ratings"].append(rating)
-            
-            # Broadcast updated data to all connected WebSocket clients
-            await manager.broadcast({
-                "type": "data_update",
-                "data": institutions_db
-            })
-            
-            return {"status": "Rating submitted successfully"}
-    
-    return {"error": f"Institution '{institution_id}' not found"}
+    if not institution:
+        return {"error": f"Institution '{input.institution}' not found"}
+
+    # Create a new rating
+    new_rating = models.Rating(
+        institution_id=input.institution,
+        rating=input.rating
+    )
+    db.add(new_rating)
+    db.commit()
+
+    # Get all institutions with their ratings for broadcast
+    institutions_data = get_institutions_data(db)
+
+    # Broadcast updated data to all connected WebSocket clients
+    await manager.broadcast({
+        "type": "data_update",
+        "data": institutions_data
+    })
+
+    return {"status": "Rating submitted successfully"}
 
 @app.get("/api/data")
-async def data():
-    print("Institutions data requested: ", institutions_db)
-    return institutions_db
+async def data(db: Session = Depends(get_db)):
+    institutions_data = get_institutions_data(db)
+    print("Institutions data requested: ", institutions_data)
+    return institutions_data
 
 @app.websocket("/api/data/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
     await manager.connect(websocket)
-    
+
     # Send initial data when client connects
+    institutions_data = get_institutions_data(db)
     await websocket.send_json({
         "type": "initial_data",
-        "data": institutions_db
+        "data": institutions_data
     })
-    
+
     try:
         # Keep connection alive and handle incoming messages if needed
         while True:
