@@ -1,6 +1,5 @@
 packages:
-  - apps/artwork_display
-  - apps/frontend
+  - apps/*
   - packages/*
 
 onlyBuiltDependencies:
