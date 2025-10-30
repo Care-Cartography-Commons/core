@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { Institution } from '../types';
 import { api } from '../api';
+import { MdDelete, MdQrCode, MdFormatListBulleted } from "react-icons/md";
+import { IoMdSettings } from "react-icons/io";
 
 interface InstitutionListProps {
   onEdit: (institution: Institution) => void;
@@ -103,30 +105,30 @@ export function InstitutionList({ onEdit, onView, onQR, refreshTrigger }: Instit
                     </span>
                   </td>
                   <td>
-                    <div className="btn-group btn-group-sm" role="group">
+                    <div className="btn-group btn-group-sm action-btns" role="group">
                       <button
                         className="btn btn-primary"
                         onClick={() => onView(institution.id)}
                       >
-                        View
+                        <MdFormatListBulleted />
                       </button>
                       <button
-                        className="btn btn-warning"
+                        className="btn btn-secondary"
                         onClick={() => onEdit(institution)}
                         >
-                        Edit
+                        <IoMdSettings />
                       </button>
                       <button
                         className="btn btn-success"
                         onClick={() => onQR(institution.qr_url)}
                         >
-                        Get QR code
+                        <MdQrCode />
                       </button>
                       <button
                         className="btn btn-danger"
                         onClick={() => setDeleteId(institution.id)}
                         >
-                        Delete
+                        <MdDelete />
                       </button>
                     </div>
                   </td>
