@@ -51,6 +51,11 @@ function App() {
     setViewingInstitutionId(null);
   };
 
+  const handleQR = (url: string) => {
+    window.open(url, '_blank')
+  };
+  
+
   return (
     <div className="container-fluid py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -71,6 +76,7 @@ function App() {
           <InstitutionList
             onEdit={handleEdit}
             onView={handleView}
+            onQR={handleQR}
             refreshTrigger={refreshTrigger}
           />
         </div>

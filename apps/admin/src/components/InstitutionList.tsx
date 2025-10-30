@@ -5,10 +5,11 @@ import { api } from '../api';
 interface InstitutionListProps {
   onEdit: (institution: Institution) => void;
   onView: (id: string) => void;
+  onQR: (url: string) => void;
   refreshTrigger?: number;
 }
 
-export function InstitutionList({ onEdit, onView, refreshTrigger }: InstitutionListProps) {
+export function InstitutionList({ onEdit, onView, onQR, refreshTrigger }: InstitutionListProps) {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,12 +72,11 @@ export function InstitutionList({ onEdit, onView, refreshTrigger }: InstitutionL
         <table className="table table-striped table-hover">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Name</th>
-              <th>Created</th>
               <th>Ratings</th>
               <th>Status</th>
               <th>Actions</th>
+              <th>Created</th>
             </tr>
           </thead>
           <tbody>
@@ -90,10 +90,8 @@ export function InstitutionList({ onEdit, onView, refreshTrigger }: InstitutionL
               institutions.map((institution) => (
                 <tr key={institution.id}>
                   <td>
-                    <code>{institution.id}</code>
+                    {institution.name}
                   </td>
-                  <td>{institution.name}</td>
-                  <td>{new Date(institution.created_at).toLocaleString()}</td>
                   <td>
                     <span className="badge bg-primary">
                       {institution.rating_count}
@@ -113,19 +111,26 @@ export function InstitutionList({ onEdit, onView, refreshTrigger }: InstitutionL
                         View
                       </button>
                       <button
-                        className="btn btn-secondary"
+                        className="btn btn-warning"
                         onClick={() => onEdit(institution)}
-                      >
+                        >
                         Edit
+                      </button>
+                      <button
+                        className="btn btn-success"
+                        onClick={() => onQR(institution.qr_url)}
+                        >
+                        Get QR code
                       </button>
                       <button
                         className="btn btn-danger"
                         onClick={() => setDeleteId(institution.id)}
-                      >
+                        >
                         Delete
                       </button>
                     </div>
                   </td>
+                  <td>{new Date(institution.created_at).toLocaleString()}</td>
                 </tr>
               ))
             )}

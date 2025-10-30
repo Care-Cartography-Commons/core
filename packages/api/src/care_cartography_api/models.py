@@ -15,11 +15,12 @@ class Institution(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(String, default=InstitutionStatus.INACTIVE.value, nullable=False)
+    qr_code_svg = Column(String, nullable=False)
 
     # Relationship to ratings
     ratings = relationship("Rating", back_populates="institution", cascade="all, delete-orphan")
 
-    status = Column(String, default=InstitutionStatus.INACTIVE.value, nullable=False)
 
 class Rating(Base):
     __tablename__ = "ratings"

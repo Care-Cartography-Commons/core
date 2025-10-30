@@ -25,8 +25,9 @@ def seed_database():
 
         # Create initial institution
         institution = Institution(
-            id="inst1",
-            name="Æblerød Plejehjem"
+            id="2cd7ac3421634b128f4b2e274991021d",
+            name="Æblerød Plejehjem",
+            qr_code_svg="<svg>...</svg>",
         )
 
         db.add(institution)

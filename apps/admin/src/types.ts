@@ -4,6 +4,7 @@ export interface Institution {
   created_at: string;
   rating_count: number;
   status: string;
+  qr_url: string;
 }
 
 export interface InstitutionDetail extends Institution {

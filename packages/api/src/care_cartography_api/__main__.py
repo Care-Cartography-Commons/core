@@ -1,5 +1,8 @@
-import os
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
+import os, re
+from uuid import uuid4
+from pathlib import Path
+from dotenv import load_dotenv
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, Response
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
@@ -7,27 +10,37 @@ from contextlib import asynccontextmanager
 from sqlalchemy.orm import Session
 from .database import get_db, engine, Base
 from . import models
+from .qrcode import generate_qr_code
+
+# Load environment variables from .env file
+# Look for .env in the project root (3 levels up from this file)
+env_path = Path(__file__).resolve().parent.parent.parent.parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 class RatingInput(BaseModel):
     institution: str
     rating: int
 
 class InstitutionCreate(BaseModel):
-    id: str
     name: str
-    status: models.InstitutionStatus
 
 class InstitutionUpdate(BaseModel):
     name: str
+    status: models.InstitutionStatus
 
-def get_institutions_data(db: Session):
+def get_qr_code_url(institution_id: str) -> str:
+    """Helper function to generate QR code URL for an institution"""
+    base_url = os.getenv("PROJECT_BASE_URL", "http://localhost:8000")
+    return f"{base_url}/api/institutions/{institution_id}/qrcode"
+
+def get_artwork_data(db: Session):
     """Helper function to get all institutions with their ratings"""
     institutions = db.query(models.Institution).all()
     return [
         {
             "id": inst.id,
             "name": inst.name,
-            "ratings": [r.rating for r in inst.ratings]
+            "ratings": [r.rating for r in inst.ratings],
         }
         for inst in institutions
     ]
@@ -97,7 +110,7 @@ async def submit(input: RatingInput, db: Session = Depends(get_db)):
     db.commit()
 
     # Get all institutions with their ratings for broadcast
-    institutions_data = get_institutions_data(db)
+    institutions_data = get_artwork_data(db)
 
     # Broadcast updated data to all connected WebSocket clients
     await manager.broadcast({
@@ -107,18 +120,13 @@ async def submit(input: RatingInput, db: Session = Depends(get_db)):
 
     return {"status": "Rating submitted successfully"}
 
-# @app.get("/api/data")
-# async def data(db: Session = Depends(get_db)):
-#     institutions_data = get_institutions_data(db)
-#     print("Institutions data requested: ", institutions_data)
-#     return institutions_data
 
 @app.websocket("/api/data/ws")
 async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
     await manager.connect(websocket)
 
     # Send initial data when client connects
-    institutions_data = get_institutions_data(db)
+    institutions_data = get_artwork_data(db)
     await websocket.send_json({
         "type": "initial_data",
         "data": institutions_data
@@ -144,7 +152,8 @@ async def list_institutions(db: Session = Depends(get_db)):
             "name": inst.name,
             "created_at": inst.created_at.isoformat(),
             "rating_count": len(inst.ratings),
-            "status": inst.status
+            "status": inst.status,
+            "qr_url": get_qr_code_url(str(inst.id)),
         }
         for inst in institutions
     ]
@@ -152,17 +161,25 @@ async def list_institutions(db: Session = Depends(get_db)):
 @app.post("/api/institutions")
 async def create_institution(institution: InstitutionCreate, db: Session = Depends(get_db)):
     """Create a new institution"""
-    # Check if institution already exists
+
+    # Generate unique institution ID and URL for rating
+    new_institution_id = uuid4().hex
+    new_institution_rate_url = f"{os.getenv('PROJECT_BASE_URL', 'http://localhost:8000')}/rate/{new_institution_id}"
+
+    # Check if institution ID already exists
     existing = db.query(models.Institution).filter(
-        models.Institution.id == institution.id
+        models.Institution.id == new_institution_id
     ).first()
 
     if existing:
         raise HTTPException(status_code=400, detail="Institution with this ID already exists")
 
+    # Create new institution
     new_institution = models.Institution(
-        id=institution.id,
-        name=institution.name
+        id=new_institution_id,
+        name=institution.name,
+        status=models.InstitutionStatus.INACTIVE.value,
+        qr_code_svg=generate_qr_code(new_institution_rate_url)
     )
     db.add(new_institution)
     db.commit()
@@ -173,7 +190,8 @@ async def create_institution(institution: InstitutionCreate, db: Session = Depen
         "name": new_institution.name,
         "created_at": new_institution.created_at.isoformat(),
         "rating_count": 0,
-        "status": new_institution.status
+        "status": new_institution.status,
+        "url": new_institution_rate_url,
     }
 
 @app.get("/api/institutions/{institution_id}")
@@ -201,6 +219,25 @@ async def get_institution(institution_id: str, db: Session = Depends(get_db)):
             for r in institution.ratings
         ]
     }
+
+@app.get("/api/institutions/{institution_id}/qrcode")
+async def get_qr_code(institution_id: str, db: Session = Depends(get_db)):
+    # Fetch institution from database
+    institution = db.query(models.Institution).filter(models.Institution.id == institution_id).first()
+    
+    if not institution:
+        raise HTTPException(status_code=404, detail="Institution not found, cannot retrieve QR code")
+    
+    # Return the SVG string with proper content type and filename
+    sanitized_name = re.sub(r'[^\w]', '', str(institution.name))
+    sanitized_name = re.sub(r' +', '_', sanitized_name)
+    return Response(
+        content=institution.qr_code_svg,
+        media_type="image/svg+xml",
+        headers={
+            "Content-Disposition": f'attachment; filename="{sanitized_name}-qrcode.svg"'
+        }
+    )
 
 @app.put("/api/institutions/{institution_id}")
 async def update_institution(
