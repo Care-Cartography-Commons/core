@@ -11,3 +11,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.institution-summary {
+  display: grid;
+  grid-template-columns: 8em auto;
+  background-color: #f8f9fa;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}

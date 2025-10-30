@@ -1,7 +1,13 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from enum import StrEnum
 from datetime import datetime
 from .database import Base
+
+class InstitutionStatus(StrEnum):
+    INACTIVE = "inactive"
+    ACTIVE = "active"
+    PAUSED = "paused"
 
 class Institution(Base):
     __tablename__ = "institutions"
@@ -12,6 +18,8 @@ class Institution(Base):
 
     # Relationship to ratings
     ratings = relationship("Rating", back_populates="institution", cascade="all, delete-orphan")
+
+    status = Column(String, default=InstitutionStatus.INACTIVE.value, nullable=False)
 
 class Rating(Base):
     __tablename__ = "ratings"
