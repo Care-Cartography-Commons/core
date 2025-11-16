@@ -1,19 +1,16 @@
-from logging.config import fileConfig
 import os
 import sys
+from logging.config import fileConfig
 from pathlib import Path
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # Add the src directory to the path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 # Import your models and Base
 from care_cartography_api.database import Base
-from care_cartography_api.models import Institution, Rating
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -27,7 +24,7 @@ POSTGRES_DB = os.getenv("POSTGRES_DB", "care_cartography")
 # Update the sqlalchemy.url with environment variables
 config.set_main_option(
     "sqlalchemy.url",
-    f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}"
+    f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}",
 )
 
 # Interpret the config file for Python logging.
@@ -83,9 +80,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

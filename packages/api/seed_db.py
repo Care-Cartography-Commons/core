@@ -1,12 +1,14 @@
 """Script to seed the database with initial data"""
+
 import sys
 from pathlib import Path
 
 # Add src directory to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from care_cartography_api.database import SessionLocal, engine, Base
+from care_cartography_api.database import Base, SessionLocal, engine
 from care_cartography_api.models import Institution
+
 
 def seed_database():
     """Seed the database with initial institution data"""
@@ -41,6 +43,7 @@ def seed_database():
         db.rollback()
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed_database()

@@ -1,15 +1,25 @@
-import os, re
-from uuid import uuid4
-from pathlib import Path
-from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, Response
-from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+import os
+import re
 from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import List
+from uuid import uuid4
+
+from dotenv import load_dotenv
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    Response,
+    WebSocket,
+    WebSocketDisconnect,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from .database import get_db, engine, Base
+
 from . import models
+from .database import Base, engine, get_db
 from .qrcode import generate_qr_code
 
 # Load environment variables from .env file
@@ -17,21 +27,26 @@ from .qrcode import generate_qr_code
 env_path = Path(__file__).resolve().parent.parent.parent.parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
+
 class RatingInput(BaseModel):
     institution: str
     rating: int
 
+
 class InstitutionCreate(BaseModel):
     name: str
+
 
 class InstitutionUpdate(BaseModel):
     name: str
     status: models.InstitutionStatus
 
+
 def get_qr_code_url(institution_id: str) -> str:
     """Helper function to generate QR code URL for an institution"""
     base_url = os.getenv("PROJECT_BASE_URL", "http://localhost:8000")
     return f"{base_url}/api/institutions/{institution_id}/qrcode"
+
 
 def get_artwork_data(db: Session):
     """Helper function to get all institutions with their ratings"""
@@ -44,6 +59,7 @@ def get_artwork_data(db: Session):
         }
         for inst in institutions
     ]
+
 
 # Store active WebSocket connections
 class ConnectionManager:
@@ -66,7 +82,9 @@ class ConnectionManager:
                 # Remove broken connections
                 self.active_connections.remove(connection)
 
+
 manager = ConnectionManager()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -74,6 +92,7 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     yield
     # Shutdown: cleanup if needed
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -87,25 +106,26 @@ if os.getenv("ENVIRONMENT", "development") != "production":
         allow_headers=["*"],
     )
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
+
 @app.post("/api/ratings/submit")
 async def submit(input: RatingInput, db: Session = Depends(get_db)):
     # Find the institution
-    institution = db.query(models.Institution).filter(
-        models.Institution.id == input.institution
-    ).first()
+    institution = (
+        db.query(models.Institution)
+        .filter(models.Institution.id == input.institution)
+        .first()
+    )
 
     if not institution:
         return {"error": f"Institution '{input.institution}' not found"}
 
     # Create a new rating
-    new_rating = models.Rating(
-        institution_id=input.institution,
-        rating=input.rating
-    )
+    new_rating = models.Rating(institution_id=input.institution, rating=input.rating)
     db.add(new_rating)
     db.commit()
 
@@ -113,10 +133,7 @@ async def submit(input: RatingInput, db: Session = Depends(get_db)):
     institutions_data = get_artwork_data(db)
 
     # Broadcast updated data to all connected WebSocket clients
-    await manager.broadcast({
-        "type": "data_update",
-        "data": institutions_data
-    })
+    await manager.broadcast({"type": "data_update", "data": institutions_data})
 
     return {"status": "Rating submitted successfully"}
 
@@ -127,10 +144,7 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)
 
     # Send initial data when client connects
     institutions_data = get_artwork_data(db)
-    await websocket.send_json({
-        "type": "initial_data",
-        "data": institutions_data
-    })
+    await websocket.send_json({"type": "initial_data", "data": institutions_data})
 
     try:
         # Keep connection alive and handle incoming messages if needed
@@ -140,7 +154,9 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
+
 # Institution CRUD endpoints
+
 
 @app.get("/api/institutions")
 async def list_institutions(db: Session = Depends(get_db)):
@@ -158,8 +174,11 @@ async def list_institutions(db: Session = Depends(get_db)):
         for inst in institutions
     ]
 
+
 @app.post("/api/institutions")
-async def create_institution(institution: InstitutionCreate, db: Session = Depends(get_db)):
+async def create_institution(
+    institution: InstitutionCreate, db: Session = Depends(get_db)
+):
     """Create a new institution"""
 
     # Generate unique institution ID and URL for rating
@@ -167,19 +186,23 @@ async def create_institution(institution: InstitutionCreate, db: Session = Depen
     new_institution_rate_url = f"{os.getenv('PROJECT_BASE_URL', 'http://localhost:8000')}/rate/{new_institution_id}"
 
     # Check if institution ID already exists
-    existing = db.query(models.Institution).filter(
-        models.Institution.id == new_institution_id
-    ).first()
+    existing = (
+        db.query(models.Institution)
+        .filter(models.Institution.id == new_institution_id)
+        .first()
+    )
 
     if existing:
-        raise HTTPException(status_code=400, detail="Institution with this ID already exists")
+        raise HTTPException(
+            status_code=400, detail="Institution with this ID already exists"
+        )
 
     # Create new institution
     new_institution = models.Institution(
         id=new_institution_id,
         name=institution.name,
         status=models.InstitutionStatus.INACTIVE.value,
-        qr_code_svg=generate_qr_code(new_institution_rate_url)
+        qr_code_svg=generate_qr_code(new_institution_rate_url),
     )
     db.add(new_institution)
     db.commit()
@@ -194,12 +217,15 @@ async def create_institution(institution: InstitutionCreate, db: Session = Depen
         "url": new_institution_rate_url,
     }
 
+
 @app.get("/api/institutions/{institution_id}")
 async def get_institution(institution_id: str, db: Session = Depends(get_db)):
     """Get a single institution with all its ratings"""
-    institution = db.query(models.Institution).filter(
-        models.Institution.id == institution_id
-    ).first()
+    institution = (
+        db.query(models.Institution)
+        .filter(models.Institution.id == institution_id)
+        .first()
+    )
 
     if not institution:
         raise HTTPException(status_code=404, detail="Institution not found")
@@ -211,49 +237,55 @@ async def get_institution(institution_id: str, db: Session = Depends(get_db)):
         "rating_count": len(institution.ratings),
         "status": institution.status,
         "ratings": [
-            {
-                "id": r.id,
-                "rating": r.rating,
-                "created_at": r.created_at.isoformat()
-            }
+            {"id": r.id, "rating": r.rating, "created_at": r.created_at.isoformat()}
             for r in institution.ratings
-        ]
+        ],
     }
+
 
 @app.get("/api/institutions/{institution_id}/qrcode")
 async def get_qr_code(institution_id: str, db: Session = Depends(get_db)):
     # Fetch institution from database
-    institution = db.query(models.Institution).filter(models.Institution.id == institution_id).first()
-    
+    institution = (
+        db.query(models.Institution)
+        .filter(models.Institution.id == institution_id)
+        .first()
+    )
+
     if not institution:
-        raise HTTPException(status_code=404, detail="Institution not found, cannot retrieve QR code")
-    
+        raise HTTPException(
+            status_code=404, detail="Institution not found, cannot retrieve QR code"
+        )
+
     # Return the SVG string with proper content type and filename
-    sanitized_name = re.sub(r'[^\w]', '', str(institution.name))
-    sanitized_name = re.sub(r' +', '_', sanitized_name)
+    sanitized_name = re.sub(r"[^\w]", "", str(institution.name))
+    sanitized_name = re.sub(r" +", "_", sanitized_name)
     return Response(
         content=institution.qr_code_svg,
         media_type="image/svg+xml",
         headers={
             "Content-Disposition": f'attachment; filename="{sanitized_name}-qrcode.svg"'
-        }
+        },
     )
+
 
 @app.put("/api/institutions/{institution_id}")
 async def update_institution(
     institution_id: str,
     institution_data: InstitutionUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Update an institution"""
-    db_institution = db.query(models.Institution).filter(
-        models.Institution.id == institution_id
-    ).first()
+    db_institution = (
+        db.query(models.Institution)
+        .filter(models.Institution.id == institution_id)
+        .first()
+    )
 
     if not db_institution:
         raise HTTPException(status_code=404, detail="Institution not found")
 
-    db_institution.name = institution_data.name # type: ignore
+    db_institution.name = institution_data.name  # type: ignore
     db.commit()
     db.refresh(db_institution)
 
@@ -261,15 +293,18 @@ async def update_institution(
         "id": db_institution.id,
         "name": db_institution.name,
         "created_at": db_institution.created_at.isoformat(),
-        "rating_count": len(db_institution.ratings)
+        "rating_count": len(db_institution.ratings),
     }
+
 
 @app.delete("/api/institutions/{institution_id}")
 async def delete_institution(institution_id: str, db: Session = Depends(get_db)):
     """Delete an institution and all its ratings"""
-    db_institution = db.query(models.Institution).filter(
-        models.Institution.id == institution_id
-    ).first()
+    db_institution = (
+        db.query(models.Institution)
+        .filter(models.Institution.id == institution_id)
+        .first()
+    )
 
     if not db_institution:
         raise HTTPException(status_code=404, detail="Institution not found")
@@ -278,4 +313,3 @@ async def delete_institution(institution_id: str, db: Session = Depends(get_db))
     db.commit()
 
     return {"status": "success", "message": f"Institution '{institution_id}' deleted"}
-

@@ -1,13 +1,17 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-from enum import StrEnum
 from datetime import datetime
+from enum import StrEnum
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
+
 from .database import Base
+
 
 class InstitutionStatus(StrEnum):
     INACTIVE = "inactive"
     ACTIVE = "active"
     PAUSED = "paused"
+
 
 class Institution(Base):
     __tablename__ = "institutions"
@@ -19,7 +23,9 @@ class Institution(Base):
     qr_code_svg = Column(String, nullable=False)
 
     # Relationship to ratings
-    ratings = relationship("Rating", back_populates="institution", cascade="all, delete-orphan")
+    ratings = relationship(
+        "Rating", back_populates="institution", cascade="all, delete-orphan"
+    )
 
 
 class Rating(Base):
