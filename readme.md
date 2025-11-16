@@ -2,11 +2,18 @@
 
 Care Cartography Commons is a real-time collaborative mapping platform for mapping care in institutional settings to a generative artwork based on user submitted data.
 
-**Current:** The project is in active development and not ready for pull requests yet. The project aims to reach version 1.0 in December, 2025.
+**Current status:** The project is in active development and not ready for pull requests yet. The project aims to reach version 1.0 in December, 2025.
+
+## Tech stack
+
+- Core dependencies: Python, Node.js, Docker
+- Frontend: React, paper.js, Bootstrap
+- Backend: FastAPI, PostgreSQL, Uvicorn, SQLAlchemy
+- Dev tooling: pnpm, Turborepo
 
 ## Functionality
 
-Users scan a QR code and submit data (displayed on the left below). This data then feeds into a generative, visual artwork which updates in real time using websockets (displayed on the right below):
+Users scan a QR code and submit data (displayed on the left below). This data then feeds into a generative, visual artwork updated in real time using websockets (displayed on the right below):
 
 ![User frontends](./docs/images/frontends-early.png)
 
