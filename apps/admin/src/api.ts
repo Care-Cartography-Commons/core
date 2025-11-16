@@ -3,25 +3,25 @@ import type {
   InstitutionDetail,
   InstitutionCreateInput,
   InstitutionUpdateInput,
-} from './types';
+} from './types'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const api = {
   async listInstitutions(): Promise<Institution[]> {
-    const response = await fetch(`${API_BASE_URL}/api/institutions`);
+    const response = await fetch(`${API_BASE_URL}/api/institutions`)
     if (!response.ok) {
-      throw new Error('Failed to fetch institutions');
+      throw new Error('Failed to fetch institutions')
     }
-    return response.json();
+    return response.json()
   },
 
   async getInstitution(id: string): Promise<InstitutionDetail> {
-    const response = await fetch(`${API_BASE_URL}/api/institutions/${id}`);
+    const response = await fetch(`${API_BASE_URL}/api/institutions/${id}`)
     if (!response.ok) {
-      throw new Error('Failed to fetch institution');
+      throw new Error('Failed to fetch institution')
     }
-    return response.json();
+    return response.json()
   },
 
   async createInstitution(data: InstitutionCreateInput): Promise<Institution> {
@@ -31,17 +31,17 @@ export const api = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    });
+    })
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to create institution');
+      const error = await response.json()
+      throw new Error(error.detail || 'Failed to create institution')
     }
-    return response.json();
+    return response.json()
   },
 
   async updateInstitution(
     id: string,
-    data: InstitutionUpdateInput
+    data: InstitutionUpdateInput,
   ): Promise<Institution> {
     const response = await fetch(`${API_BASE_URL}/api/institutions/${id}`, {
       method: 'PUT',
@@ -49,21 +49,21 @@ export const api = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    });
+    })
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to update institution');
+      const error = await response.json()
+      throw new Error(error.detail || 'Failed to update institution')
     }
-    return response.json();
+    return response.json()
   },
 
   async deleteInstitution(id: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/api/institutions/${id}`, {
       method: 'DELETE',
-    });
+    })
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to delete institution');
+      const error = await response.json()
+      throw new Error(error.detail || 'Failed to delete institution')
     }
   },
-};
+}

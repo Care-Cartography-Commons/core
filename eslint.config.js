@@ -19,5 +19,18 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Formatting rules (most moved to @stylistic plugin in typescript-eslint v8)
+      // Using Prettier for formatting instead
+      'quotes': ['error', 'single'],
+      'semi': ['error', 'never'],
+      'comma-dangle': ['error', 'always-multiline'],
+
+      // TypeScript-specific overrides
+      '@typescript-eslint/no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }],
+    },
   },
 ])

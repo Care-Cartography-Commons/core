@@ -1,37 +1,33 @@
-import { useState, useEffect, useContext } from 'react';
-import type { InstitutionDetail } from '../types';
-import { api } from '../api';
-import { InstitutionContext } from './InstitutionContext';
+import { useState, useEffect, useContext } from 'react'
+import type { InstitutionDetail } from '../types'
+import { api } from '../api'
+import { InstitutionContext } from './InstitutionContext'
 
-interface InstitutionDetailProps {
-  onClose: () => void;
-}
+export function InstitutionDetailView() {
+  const [institutionData, setInstitutionData] = useState<InstitutionDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-export function InstitutionDetailView({ onClose }: InstitutionDetailProps) {
-  const [institutionData, setInstitutionData] = useState<InstitutionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const institution = useContext(InstitutionContext);
+  const institution = useContext(InstitutionContext)
   
   useEffect(() => {
     const loadInstitution = async () => {
       try {
-        setLoading(true);
-        setError(null);
+        setLoading(true)
+        setError(null)
         if (institution === null) {
-          throw new Error('No institution selected');
+          throw new Error('No institution selected')
         }
-        const data = await api.getInstitution(institution.id);
-        setInstitutionData(data);
+        const data = await api.getInstitution(institution.id)
+        setInstitutionData(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load institution');
+        setError(err instanceof Error ? err.message : 'Failed to load institution')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    loadInstitution();
-  }, [institution]);
+    }
+    loadInstitution()
+  }, [institution])
   
   return loading ? (
               <div className="text-center py-5">
@@ -99,5 +95,5 @@ export function InstitutionDetailView({ onClose }: InstitutionDetailProps) {
               </>
             ) : (
               <p className="text-muted">No institution data available.</p>
-            );
+            )
 }

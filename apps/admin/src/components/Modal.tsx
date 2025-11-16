@@ -7,7 +7,7 @@ interface ModalProps {
   includeFooter?: boolean
 }
 
-export default function Modal({ children, title = "Details", isOpen, onClose, includeFooter = true }: ModalProps) {
+export default function Modal({ children, title = 'Details', isOpen, onClose, includeFooter = true }: ModalProps) {
   return (
     isOpen && (
       <div

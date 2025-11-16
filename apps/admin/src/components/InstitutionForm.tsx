@@ -1,7 +1,7 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react'
 
-import { api } from '../api';
-import { InstitutionContext } from './InstitutionContext';
+import { api } from '../api'
+import { InstitutionContext } from './InstitutionContext'
 
 
 interface InstitutionFormProps {
@@ -11,38 +11,38 @@ interface InstitutionFormProps {
 }
 
 export function InstitutionForm({ onSuccess, onCancel, formType }: InstitutionFormProps) {
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
-  const institution = useContext(InstitutionContext);
+  const institution = useContext(InstitutionContext)
 
   useEffect(() => {
     if (institution) {
-      setName(institution.name);
+      setName(institution.name)
     } else {
-      setName('');
+      setName('')
     }
-  }, [institution]);
+  }, [institution])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
 
     try {
       if (formType === 'edit' && institution) {
-        await api.updateInstitution(institution.id, { name });
+        await api.updateInstitution(institution.id, { name })
       } else {
-        await api.createInstitution({ name });
+        await api.createInstitution({ name })
       }
-      onSuccess();
+      onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save institution');
+      setError(err instanceof Error ? err.message : 'Failed to save institution')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
           <form onSubmit={handleSubmit}>
@@ -93,5 +93,5 @@ export function InstitutionForm({ onSuccess, onCancel, formType }: InstitutionFo
             </div>
           </form>
         
-  );
+  )
 }

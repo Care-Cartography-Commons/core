@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from 'react'
 
 interface ToastProps {
   message: string;
@@ -9,15 +9,15 @@ interface ToastProps {
 
 export function Toast({ message, type, onClose, duration = 3000 }: ToastProps) {
   useEffect(() => {
-    const timer = setTimeout(onClose, duration);
-    return () => clearTimeout(timer);
-  }, [duration, onClose]);
+    const timer = setTimeout(onClose, duration)
+    return () => clearTimeout(timer)
+  }, [duration, onClose])
 
   const bgClass = {
     success: 'bg-success',
     error: 'bg-danger',
     info: 'bg-info',
-  }[type];
+  }[type]
 
   return (
     <div
@@ -35,5 +35,5 @@ export function Toast({ message, type, onClose, duration = 3000 }: ToastProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

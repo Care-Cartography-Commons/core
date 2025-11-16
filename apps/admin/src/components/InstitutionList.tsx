@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import type { Institution } from '../types';
-import { api } from '../api';
-import { MdDelete, MdQrCode, MdFormatListBulleted } from "react-icons/md";
-import { IoMdSettings } from "react-icons/io";
+import { useState, useEffect } from 'react'
+import type { Institution } from '../types'
+import { api } from '../api'
+import { MdDelete, MdQrCode, MdFormatListBulleted } from 'react-icons/md'
+import { IoMdSettings } from 'react-icons/io'
 
 interface InstitutionListProps {
   setActiveModal: (modal: 'view' | 'edit' | 'delete' | null) => void;
@@ -17,26 +17,26 @@ export function InstitutionList({ setActiveModal, onQR, selectInstitution, refre
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadInstitutions();
-  }, [refreshTrigger]);
+    loadInstitutions()
+  }, [refreshTrigger])
 
   const loadInstitutions = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const data = await api.listInstitutions();
-      setInstitutions(data);
+      setLoading(true)
+      setError(null)
+      const data = await api.listInstitutions()
+      setInstitutions(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load institutions');
+      setError(err instanceof Error ? err.message : 'Failed to load institutions')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleModalActivation = (e: React.MouseEvent, institution: Institution, modalType: 'view' | 'edit' | 'delete') => {
-    e.stopPropagation();
-    selectInstitution(institution);
-    setActiveModal(modalType);
+    e.stopPropagation()
+    selectInstitution(institution)
+    setActiveModal(modalType)
   }
 
   if (loading) {
@@ -46,7 +46,7 @@ export function InstitutionList({ setActiveModal, onQR, selectInstitution, refre
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -60,7 +60,7 @@ export function InstitutionList({ setActiveModal, onQR, selectInstitution, refre
           Retry
         </button>
       </div>
-    );
+    )
   }
 
   return (
@@ -95,7 +95,7 @@ export function InstitutionList({ setActiveModal, onQR, selectInstitution, refre
                     </span>
                   </td>
                   <td>
-                    <span className={"badge bg-" + (institution.status === 'active' ? 'success' : 'secondary')}>
+                    <span className={'badge bg-' + (institution.status === 'active' ? 'success' : 'secondary')}>
                       {institution.status}
                     </span>
                   </td>
@@ -137,5 +137,5 @@ export function InstitutionList({ setActiveModal, onQR, selectInstitution, refre
 
       
     </>
-  );
+  )
 }
