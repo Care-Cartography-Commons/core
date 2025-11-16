@@ -18,7 +18,6 @@ export interface Rating {
 }
 
 export interface InstitutionCreateInput {
-  id: string;
   name: string;
 }
 

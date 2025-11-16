@@ -1,27 +1,26 @@
-import { useState, useEffect } from 'react';
-import type { Institution } from '../types';
+import { useState, useEffect, useContext } from 'react';
+
 import { api } from '../api';
+import { InstitutionContext } from './InstitutionContext';
+
 
 interface InstitutionFormProps {
-  institution?: Institution | null;
   onSuccess: () => void;
   onCancel: () => void;
+  formType: 'create' | 'edit';
 }
 
-export function InstitutionForm({ institution, onSuccess, onCancel }: InstitutionFormProps) {
-  const [id, setId] = useState('');
+export function InstitutionForm({ onSuccess, onCancel, formType }: InstitutionFormProps) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const isEditing = !!institution;
+  
+  const institution = useContext(InstitutionContext);
 
   useEffect(() => {
     if (institution) {
-      setId(institution.id);
       setName(institution.name);
     } else {
-      setId('');
       setName('');
     }
   }, [institution]);
@@ -32,10 +31,10 @@ export function InstitutionForm({ institution, onSuccess, onCancel }: Institutio
     setLoading(true);
 
     try {
-      if (isEditing) {
-        await api.updateInstitution(id, { name });
+      if (formType === 'edit' && institution) {
+        await api.updateInstitution(institution.id, { name });
       } else {
-        await api.createInstitution({ id, name });
+        await api.createInstitution({ name });
       }
       onSuccess();
     } catch (err) {
@@ -46,53 +45,12 @@ export function InstitutionForm({ institution, onSuccess, onCancel }: Institutio
   };
 
   return (
-    <div
-      className="modal show d-block"
-      tabIndex={-1}
-      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-    >
-      <div className="modal-dialog">
-        <div className="modal-content">
           <form onSubmit={handleSubmit}>
-            <div className="modal-header">
-              <h5 className="modal-title">
-                {isEditing ? 'Edit Institution' : 'Create Institution'}
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={onCancel}
-                disabled={loading}
-              ></button>
-            </div>
-            <div className="modal-body">
               {error && (
                 <div className="alert alert-danger" role="alert">
                   {error}
                 </div>
               )}
-
-              <div className="mb-3">
-                <label htmlFor="institutionId" className="form-label">
-                  Institution ID
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="institutionId"
-                  value={id}
-                  onChange={(e) => setId(e.target.value)}
-                  required
-                  disabled={isEditing || loading}
-                  placeholder="e.g., institution-001"
-                />
-                {isEditing && (
-                  <small className="form-text text-muted">
-                    ID cannot be changed
-                  </small>
-                )}
-              </div>
-
               <div className="mb-3">
                 <label htmlFor="institutionName" className="form-label">
                   Institution Name
@@ -105,10 +63,9 @@ export function InstitutionForm({ institution, onSuccess, onCancel }: Institutio
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={loading}
-                  placeholder="e.g., Copenhagen Library"
+                  placeholder="e.g., Bubbers badekar"
                 />
               </div>
-            </div>
             <div className="modal-footer">
               <button
                 type="button"
@@ -122,6 +79,7 @@ export function InstitutionForm({ institution, onSuccess, onCancel }: Institutio
                 type="submit"
                 className="btn btn-primary"
                 disabled={loading}
+                onClick={handleSubmit}
               >
                 {loading ? (
                   <>
@@ -129,13 +87,11 @@ export function InstitutionForm({ institution, onSuccess, onCancel }: Institutio
                     Saving...
                   </>
                 ) : (
-                  <>{isEditing ? 'Update' : 'Create'}</>
+                  <>{formType === 'edit' ? 'Update' : 'Create'}</>
                 )}
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+        
   );
 }

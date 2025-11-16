@@ -5,17 +5,16 @@ import { MdDelete, MdQrCode, MdFormatListBulleted } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 
 interface InstitutionListProps {
-  onEdit: (institution: Institution) => void;
-  onView: (id: string) => void;
+  setActiveModal: (modal: 'view' | 'edit' | 'delete' | null) => void;
   onQR: (url: string) => void;
+  selectInstitution: (institution: Institution) => void;
   refreshTrigger?: number;
 }
 
-export function InstitutionList({ onEdit, onView, onQR, refreshTrigger }: InstitutionListProps) {
-  const [institutions, setInstitutions] = useState<Institution[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+export function InstitutionList({ setActiveModal, onQR, selectInstitution, refreshTrigger }: InstitutionListProps) {
+  const [institutions, setInstitutions] = useState<Institution[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadInstitutions();
@@ -34,15 +33,11 @@ export function InstitutionList({ onEdit, onView, onQR, refreshTrigger }: Instit
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await api.deleteInstitution(id);
-      setDeleteId(null);
-      loadInstitutions();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete institution');
-    }
-  };
+  const handleModalActivation = (e: React.MouseEvent, institution: Institution, modalType: 'view' | 'edit' | 'delete') => {
+    e.stopPropagation();
+    selectInstitution(institution);
+    setActiveModal(modalType);
+  }
 
   if (loading) {
     return (
@@ -108,28 +103,28 @@ export function InstitutionList({ onEdit, onView, onQR, refreshTrigger }: Instit
                     <div className="btn-group btn-group-sm action-btns" role="group">
                       <button
                         className="btn btn-primary"
-                        onClick={() => onView(institution.id)}
+                        onClick={(e) => handleModalActivation(e, institution, 'view')}
                       >
                         <MdFormatListBulleted />
                       </button>
                       <button
                         className="btn btn-secondary"
-                        onClick={() => onEdit(institution)}
+                        onClick={(e) => handleModalActivation(e, institution, 'edit')}
                         >
                         <IoMdSettings />
                       </button>
                       <button
                         className="btn btn-success"
-                        onClick={() => onQR(institution.qr_url)}
+                        onClick={(e) => {e.stopPropagation(); onQR(institution.qr_url)}}
                         >
                         <MdQrCode />
                       </button>
                       <button
                         className="btn btn-danger"
-                        onClick={() => setDeleteId(institution.id)}
+                        onClick={(e) => handleModalActivation(e, institution, 'delete')}
                         >
-                        <MdDelete />
-                      </button>
+                          <MdDelete />
+                        </button>
                     </div>
                   </td>
                   <td>{new Date(institution.created_at).toLocaleString()}</td>
@@ -140,52 +135,7 @@ export function InstitutionList({ onEdit, onView, onQR, refreshTrigger }: Instit
         </table>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {deleteId && (
-        <div
-          className="modal show d-block"
-          tabIndex={-1}
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Confirm Delete</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setDeleteId(null)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>
-                  Are you sure you want to delete institution{' '}
-                  <strong>{deleteId}</strong>?
-                </p>
-                <p className="text-danger mb-0">
-                  This will also delete all associated ratings.
-                </p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setDeleteId(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  onClick={() => handleDelete(deleteId)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </>
   );
 }

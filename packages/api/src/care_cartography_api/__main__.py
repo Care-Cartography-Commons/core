@@ -39,7 +39,7 @@ class InstitutionCreate(BaseModel):
 
 class InstitutionUpdate(BaseModel):
     name: str
-    status: models.InstitutionStatus
+    # status: models.InstitutionStatus
 
 
 def get_qr_code_url(institution_id: str) -> str:
@@ -78,7 +78,10 @@ class ConnectionManager:
         for connection in self.active_connections:
             try:
                 await connection.send_json(data)
-            except:
+            except Exception as e:
+                self.logger.exception(
+                    "Error sending data to WebSocket client: " + str(e)
+                )
                 # Remove broken connections
                 self.active_connections.remove(connection)
 
