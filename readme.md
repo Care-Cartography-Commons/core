@@ -6,11 +6,11 @@ Care Cartography Commons is a real-time collaborative mapping platform for mappi
 
 ## Functionality
 
-Users scan a QR code and submit data (displayed on the left below). This data then feeds into a generate, visual artwork in real time (displayed on the right below):
+Users scan a QR code and submit data (displayed on the left below). This data then feeds into a generative, visual artwork which updates in real time using websockets (displayed on the right below):
 
 ![User frontends](./docs/images/frontends-early.png)
 
-The platform allows admins to create and manage data collection for institutions:
+Admins can create and manage data collection for institutions:
 
 ![Admin panel](./docs/images/admin-panel-early.png)
 
