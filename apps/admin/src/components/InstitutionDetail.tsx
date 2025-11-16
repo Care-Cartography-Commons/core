@@ -11,24 +11,24 @@ export function InstitutionDetailView({ institutionId, onClose }: InstitutionDet
   const [institution, setInstitution] = useState<InstitutionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
 
   useEffect(() => {
+    const loadInstitution = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await api.getInstitution(institutionId);
+        setInstitution(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load institution');
+      } finally {
+        setLoading(false);
+      }
+    };
     loadInstitution();
   }, [institutionId]);
-
-  const loadInstitution = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await api.getInstitution(institutionId);
-      setInstitution(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load institution');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   return (
     <div
       className="modal show d-block"
@@ -54,13 +54,7 @@ export function InstitutionDetailView({ institutionId, onClose }: InstitutionDet
               </div>
             ) : error ? (
               <div className="alert alert-danger" role="alert">
-                {error}
-                <button
-                  className="btn btn-sm btn-outline-danger ms-3"
-                  onClick={loadInstitution}
-                >
-                  Retry
-                </button>
+                <p>An error occurred: {error}</p>
               </div>
             ) : institution ? (
               <>
