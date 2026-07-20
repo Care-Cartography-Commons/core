@@ -70,13 +70,10 @@ function App() {
         </div>
       </div>
 
-      
-
-
       <InstitutionContext value = {selectedInstitution}>
         
         <Modal isOpen={activeModal === 'view'} onClose={closeModal} title="Institution Details">
-          <InstitutionDetailView onClose={closeModal} />
+          <InstitutionDetailView />
         </Modal>
         
         <Modal

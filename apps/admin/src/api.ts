@@ -1,8 +1,7 @@
 import type {
   Institution,
   InstitutionDetail,
-  InstitutionCreateInput,
-  InstitutionUpdateInput,
+  InstitutionInput
 } from './types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -24,7 +23,7 @@ export const api = {
     return response.json()
   },
 
-  async createInstitution(data: InstitutionCreateInput): Promise<Institution> {
+  async createInstitution(data: InstitutionInput): Promise<Institution> {
     const response = await fetch(`${API_BASE_URL}/api/institutions`, {
       method: 'POST',
       headers: {
@@ -41,7 +40,7 @@ export const api = {
 
   async updateInstitution(
     id: string,
-    data: InstitutionUpdateInput,
+    data: InstitutionInput,
   ): Promise<Institution> {
     const response = await fetch(`${API_BASE_URL}/api/institutions/${id}`, {
       method: 'PUT',

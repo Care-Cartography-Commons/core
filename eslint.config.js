@@ -3,6 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import prettierConfig from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
@@ -14,19 +15,14 @@ export default defineConfig([
       tseslint.configs.recommended,
       reactHooks.configs['recommended-latest'],
       reactRefresh.configs.vite,
+      prettierConfig, // Disables ESLint formatting rules that conflict with Prettier
     ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
     },
     rules: {
-      // Formatting rules (most moved to @stylistic plugin in typescript-eslint v8)
-      // Using Prettier for formatting instead
-      'quotes': ['error', 'single'],
-      'semi': ['error', 'never'],
-      'comma-dangle': ['error', 'always-multiline'],
-
-      // TypeScript-specific overrides
+      // Code quality rules only - formatting handled by Prettier
       '@typescript-eslint/no-unused-vars': ['warn', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_'

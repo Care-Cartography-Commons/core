@@ -12,9 +12,10 @@
     "db:start": "docker compose up -d",
     "db:stop": "docker compose down",
     "db:logs": "docker compose logs -f db",
-    "lint": "turbo run lint",
-    "lint:root": "eslint .",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "lint": "turbo run lint && eslint .",
+    "lint:fix": "turbo run lint --fix && eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "check-types": "turbo run check-types"
   },
   "keywords": [
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@eslint/js": "^9.35.0",
     "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",

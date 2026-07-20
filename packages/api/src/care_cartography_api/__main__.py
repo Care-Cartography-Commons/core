@@ -1,6 +1,7 @@
 import os
 import re
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import List
 from uuid import uuid4
@@ -35,11 +36,16 @@ class RatingInput(BaseModel):
 
 class InstitutionCreate(BaseModel):
     name: str
+    activation_date: datetime
+    deactivation_date: datetime
+    paused: bool = False
 
 
 class InstitutionUpdate(BaseModel):
     name: str
-    # status: models.InstitutionStatus
+    activation_date: datetime
+    deactivation_date: datetime
+    paused: bool
 
 
 def get_qr_code_url(institution_id: str) -> str:
@@ -170,6 +176,9 @@ async def list_institutions(db: Session = Depends(get_db)):
             "id": inst.id,
             "name": inst.name,
             "created_at": inst.created_at.isoformat(),
+            "activation_date": inst.activation_date.isoformat(),
+            "deactivation_date": inst.deactivation_date.isoformat(),
+            "paused": inst.paused,
             "rating_count": len(inst.ratings),
             "status": inst.status,
             "qr_url": get_qr_code_url(str(inst.id)),
@@ -191,21 +200,23 @@ async def create_institution(
     # Check if institution ID already exists
     existing = (
         db.query(models.Institution)
-        .filter(models.Institution.id == new_institution_id)
+        .filter(models.Institution.name == institution.name)
         .first()
     )
 
     if existing:
         raise HTTPException(
-            status_code=400, detail="Institution with this ID already exists"
+            status_code=400, detail="Institution with this name already exists"
         )
 
     # Create new institution
     new_institution = models.Institution(
         id=new_institution_id,
         name=institution.name,
-        status=models.InstitutionStatus.INACTIVE.value,
         qr_code_svg=generate_qr_code(new_institution_rate_url),
+        paused=institution.paused,
+        activation_date=institution.activation_date,
+        deactivation_date=institution.deactivation_date,
     )
     db.add(new_institution)
     db.commit()
@@ -215,9 +226,12 @@ async def create_institution(
         "id": new_institution.id,
         "name": new_institution.name,
         "created_at": new_institution.created_at.isoformat(),
+        "activation_date": new_institution.activation_date.isoformat(),
+        "deactivation_date": new_institution.deactivation_date.isoformat(),
+        "paused": new_institution.paused,
         "rating_count": 0,
         "status": new_institution.status,
-        "url": new_institution_rate_url,
+        "qr_url": get_qr_code_url(str(new_institution.id)),
     }
 
 
@@ -237,6 +251,9 @@ async def get_institution(institution_id: str, db: Session = Depends(get_db)):
         "id": institution.id,
         "name": institution.name,
         "created_at": institution.created_at.isoformat(),
+        "activation_date": institution.activation_date.isoformat(),
+        "deactivation_date": institution.deactivation_date.isoformat(),
+        "paused": institution.paused,
         "rating_count": len(institution.ratings),
         "status": institution.status,
         "ratings": [
@@ -289,6 +306,9 @@ async def update_institution(
         raise HTTPException(status_code=404, detail="Institution not found")
 
     db_institution.name = institution_data.name  # type: ignore
+    db_institution.activation_date = institution_data.activation_date  # type: ignore
+    db_institution.deactivation_date = institution_data.deactivation_date  # type: ignore
+    db_institution.paused = institution_data.paused  # type: ignore
     db.commit()
     db.refresh(db_institution)
 
@@ -296,7 +316,12 @@ async def update_institution(
         "id": db_institution.id,
         "name": db_institution.name,
         "created_at": db_institution.created_at.isoformat(),
+        "activation_date": db_institution.activation_date.isoformat(),
+        "deactivation_date": db_institution.deactivation_date.isoformat(),
+        "paused": db_institution.paused,
         "rating_count": len(db_institution.ratings),
+        "status": db_institution.status,
+        "qr_url": get_qr_code_url(str(db_institution.id)),
     }
 
 

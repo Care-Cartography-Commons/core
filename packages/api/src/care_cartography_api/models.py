@@ -1,16 +1,9 @@
 from datetime import datetime
-from enum import StrEnum
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from .database import Base
-
-
-class InstitutionStatus(StrEnum):
-    INACTIVE = "inactive"
-    ACTIVE = "active"
-    PAUSED = "paused"
 
 
 class Institution(Base):
@@ -19,13 +12,29 @@ class Institution(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    status = Column(String, default=InstitutionStatus.INACTIVE.value, nullable=False)
     qr_code_svg = Column(String, nullable=False)
+    activation_date = Column(DateTime, nullable=False)
+    deactivation_date = Column(DateTime, nullable=False)
+    paused = Column(Boolean, nullable=False, default=False)
 
     # Relationship to ratings
     ratings = relationship(
         "Rating", back_populates="institution", cascade="all, delete-orphan"
     )
+
+    @property
+    def status(self) -> str:
+        """Compute institution status based on dates and paused state"""
+        if self.paused:
+            return "paused"
+
+        now = datetime.utcnow()
+        if self.activation_date <= now <= self.deactivation_date:
+            return "active"
+        elif now < self.activation_date:
+            return "pending"
+        else:
+            return "expired"
 
 
 class Rating(Base):
